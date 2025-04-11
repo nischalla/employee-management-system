@@ -7,7 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -64,8 +66,19 @@ public class EmployeeController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<EmployeeDTO>> searchEmployees(@RequestParam String keyword) {
-        List<EmployeeDTO> result = employeeService.searchEmployees(keyword);
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    public ResponseEntity<Page<EmployeeDTO>> searchEmployees(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id,asc") String[] sort) {
+
+        Sort.Direction direction = Sort.Direction.fromString(sort[1]);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+
+        Page<EmployeeDTO> result = employeeService.searchEmployees(keyword, pageable);
         return ResponseEntity.ok(result);
     }
+
+
 }

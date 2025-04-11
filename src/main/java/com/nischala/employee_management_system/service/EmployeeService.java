@@ -13,4 +13,6 @@ public interface EmployeeService {
     EmployeeDTO updateEmployee(Long id, EmployeeDTO employeeDTO);
     void deleteEmployee(Long id);
     List<EmployeeDTO> searchEmployees(String keyword);
+    Page<EmployeeDTO> searchEmployees(String keyword, Pageable pageable);
+
 }

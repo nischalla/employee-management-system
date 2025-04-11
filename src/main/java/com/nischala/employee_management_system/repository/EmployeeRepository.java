@@ -10,6 +10,6 @@ import java.util.List;
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     // Custom search method
-    List<Employee> findByNameContainingIgnoreCaseOrDepartmentContainingIgnoreCase(String name, String department);
+    List<Employee> findByNameContainingIgnoreCaseOrDepartmentContainingIgnoreCase(String name, String dept);
 }
 
