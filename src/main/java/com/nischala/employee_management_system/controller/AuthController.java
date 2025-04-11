@@ -1,31 +1,47 @@
 package com.nischala.employee_management_system.controller;
 
+import com.nischala.employee_management_system.dto.AuthRequest;
 import com.nischala.employee_management_system.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
-    /* To handle login and return JWT */
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    //  This controller handles login and generates JWT tokens with roles
+
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        String username = credentials.get("username");
-        String password = credentials.get("password");
+    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
 
-        // TEMP HARDCODED - will later replace with DB/user login
-        if ("admin".equals(username) && "password".equals(password)) {
-            String token = jwtUtil.generateToken(username);
-            return ResponseEntity.ok(Map.of("token", token));
+        // 1. Authenticate username + password
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(), request.getPassword()
+                )
+        );
+
+        // 2. Assign roles
+        List<String> roles = new ArrayList<>();
+        if (request.getUsername().equals("admin")) {
+            roles.add("ROLE_ADMIN");
         } else {
-            return ResponseEntity.status(401).body("Invalid username or password");
+            roles.add("ROLE_USER");
         }
+
+        // 3. Generate JWT token
+        String token = jwtUtil.generateToken(request.getUsername(), roles);
+
+        // 4. Return token to client
+        return ResponseEntity.ok(Collections.singletonMap("token", token));
     }
 }
