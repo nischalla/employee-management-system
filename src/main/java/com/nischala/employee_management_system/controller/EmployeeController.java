@@ -2,7 +2,11 @@ package com.nischala.employee_management_system.controller;
 
 import com.nischala.employee_management_system.dto.EmployeeDTO;
 import com.nischala.employee_management_system.service.EmployeeService;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,10 +31,12 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
     @PostMapping
-    public ResponseEntity<EmployeeDTO> createEmployee(@RequestBody EmployeeDTO dto) {
-        EmployeeDTO created = employeeService.createEmployee(dto);
-        return ResponseEntity.ok(created);
+    // @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "employeePages", allEntries = true)
+    public ResponseEntity<EmployeeDTO> createEmployee(@Valid @RequestBody EmployeeDTO employeeDTO) {
+        return ResponseEntity.ok(employeeService.createEmployee(employeeDTO));
     }
+
 
     @GetMapping
     public ResponseEntity<Page<EmployeeDTO>> getAllEmployees(
@@ -51,13 +57,12 @@ public class EmployeeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EmployeeDTO> updateEmployee(
-            @PathVariable Long id,
-            @RequestBody EmployeeDTO dto
-    ) {
-        EmployeeDTO updated = employeeService.updateEmployee(id, dto);
-        return ResponseEntity.ok(updated);
+    @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = {"employees", "employeePages"}, key = "#id", allEntries = true)
+    public ResponseEntity<EmployeeDTO> update(@PathVariable Long id, @Valid @RequestBody EmployeeDTO dto) {
+        return ResponseEntity.ok(employeeService.updateEmployee(id, dto));
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
