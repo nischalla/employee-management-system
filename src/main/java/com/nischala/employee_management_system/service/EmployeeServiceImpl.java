@@ -5,6 +5,8 @@ import com.nischala.employee_management_system.mapper.EmployeeMapper;
 import com.nischala.employee_management_system.model.Employee;
 import com.nischala.employee_management_system.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,11 +34,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public List<EmployeeDTO> getAllEmployees() {
-        return employeeRepository.findAll()
-                .stream()
-                .map(employeeMapper::toDto)
-                .collect(Collectors.toList());
+    public Page<EmployeeDTO> getAllEmployees(Pageable pageable) {
+        return employeeRepository.findAll(pageable)
+                .map(employeeMapper::toDto);
     }
 
     @Override
@@ -44,7 +44,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee existing = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + id));
 
-        // Update fields
         existing.setName(employeeDTO.getName());
         existing.setDepartment(employeeDTO.getDepartment());
         existing.setAge(employeeDTO.getAge());

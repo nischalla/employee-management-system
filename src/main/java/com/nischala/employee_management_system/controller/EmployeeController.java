@@ -3,53 +3,57 @@ package com.nischala.employee_management_system.controller;
 import com.nischala.employee_management_system.dto.EmployeeDTO;
 import com.nischala.employee_management_system.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController 
-@RequestMapping("/api/employees") 
-@RequiredArgsConstructor // Automatically injects the service
+@RestController
+@RequestMapping("/api/employees")
+@RequiredArgsConstructor
 public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-    // Create an Employee
     @PostMapping
-    public ResponseEntity<EmployeeDTO> createEmployee(@RequestBody EmployeeDTO employeeDTO) {
-        EmployeeDTO created = employeeService.createEmployee(employeeDTO);
-        return ResponseEntity.ok(created);
+    public ResponseEntity<EmployeeDTO> createEmployee(@RequestBody EmployeeDTO dto) {
+        return ResponseEntity.ok(employeeService.createEmployee(dto));
     }
 
-    // Get all Employees
     @GetMapping
-    public ResponseEntity<List<EmployeeDTO>> getAllEmployees() {
-        return ResponseEntity.ok(employeeService.getAllEmployees());
+    public ResponseEntity<Page<EmployeeDTO>> getAllEmployees(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<EmployeeDTO> result = employeeService.getAllEmployees(pageable);
+        return ResponseEntity.ok(result);
     }
 
-    // Get Employee by ID
     @GetMapping("/{id}")
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id) {
         return ResponseEntity.ok(employeeService.getEmployeeById(id));
     }
 
-    // Update Employee
     @PutMapping("/{id}")
-    public ResponseEntity<EmployeeDTO> updateEmployee(@PathVariable Long id, @RequestBody EmployeeDTO dto) {
-        return ResponseEntity.ok(employeeService.updateEmployee(id, dto));
+    public ResponseEntity<EmployeeDTO> updateEmployee(
+            @PathVariable Long id,
+            @RequestBody EmployeeDTO employeeDTO
+    ) {
+        return ResponseEntity.ok(employeeService.updateEmployee(id, employeeDTO));
     }
 
-    // Delete Employee
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
     }
 
-    // Search Employees
     @GetMapping("/search")
-    public ResponseEntity<List<EmployeeDTO>> search(@RequestParam("query") String query) {
-        return ResponseEntity.ok(employeeService.searchEmployees(query));
+    public ResponseEntity<List<EmployeeDTO>> searchEmployees(@RequestParam String keyword) {
+        return ResponseEntity.ok(employeeService.searchEmployees(keyword));
     }
 }
